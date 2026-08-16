@@ -12,3 +12,9 @@
 
 # do not ignore the ccache folder (used by the ci)
 !/var/docker/ccache
+
+# Local backups and reference copies are not build inputs.
+/backups/*
+/backup_db/*
+/dbc-backup/*
+/lua_scripts_backup_*/*

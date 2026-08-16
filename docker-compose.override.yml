@@ -1,0 +1,50 @@
+# Accounts live in the shared auth service (see the wow-infra stack), not in
+# this realm's database, so a single login works across every realm and each
+# realm can run without the others.
+#
+# Start order: bring up the auth stack first, then this one.
+services:
+  # Logins are handled by the shared auth service (wow-infra stack), so this
+  # realm has no authserver of its own. The profile keeps it from starting even
+  # on a plain "docker compose up".
+  ac-authserver:
+    profiles: [unused]
+
+  ac-database:
+    # Holds this realm's world and character data only.
+    # Bound to loopback: local tools still reach it, but it is not exposed to
+    # the LAN, the VPN, or (on a server) the internet.
+    ports: !override
+      - "127.0.0.1:3306:3306"
+    networks:
+      - ac-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+  ac-worldserver:
+    networks:
+      - ac-network
+      - ac-shared
+    environment:
+      AC_LOGIN_DATABASE_INFO: authdb-shared;3306;root;${DB_ROOT_PASSWORD:-password};acore_auth
+    volumes:
+      - ./modules:/azerothcore/modules:ro
+      - ./breakingnews.html:/azerothcore/breakingnews.html
+      - ./lua_scripts:/azerothcore/lua_scripts
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 6G
+  ac-db-import:
+    networks:
+      - ac-network
+      - ac-shared
+    environment:
+      AC_LOGIN_DATABASE_INFO: authdb-shared;3306;root;${DB_ROOT_PASSWORD:-password};acore_auth
+
+networks:
+  ac-shared:
+    external: true

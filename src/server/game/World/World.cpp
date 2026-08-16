@@ -608,6 +608,9 @@ void World::SetInitialWorldSettings()
     LOG_INFO("server.loading", "Loading Quests...");
     sObjectMgr->LoadQuests();                                    // must be loaded after DBCs, creature_template, item_template, gameobject tables
 
+    LOG_INFO("server.loading", "Loading Sir Gideon Class Quest Rules...");
+    sObjectMgr->LoadGideonClassQuestRules();                     // must be loaded after quest templates
+
     LOG_INFO("server.loading", "Checking Quest Disables");
     sDisableMgr->CheckQuestDisables();                           // must be after loading quests
 

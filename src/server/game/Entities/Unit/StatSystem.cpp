@@ -945,29 +945,50 @@ void Player::UpdateManaRegen()
         return;
     }
 
+    // Keep the regeneration fields sent to the client in sync with the server-side
+    // mana rate. Otherwise the client predicts unmodified mana regeneration and is
+    // corrected by the server every couple of seconds, producing a visible sawtooth.
+    float ManaIncreaseRate = sWorld->getRate(RATE_POWER_MANA);
+    float ManaDrinkIncreaseRate = sWorld->getRate(RATE_POWER_MANA_DRINK);
+    if (sWorld->getBoolConfig(CONFIG_LOW_LEVEL_REGEN_BOOST) && GetLevel() < 15)
+    {
+        ManaIncreaseRate *= 2.066f - (GetLevel() * 0.066f);
+        ManaDrinkIncreaseRate *= 2.066f - (GetLevel() * 0.066f);
+    }
+
     float Intellect = GetStat(STAT_INTELLECT);
     // Mana regen from spirit and intellect
     float power_regen = std::sqrt(Intellect) * OCTRegenMPPerSpirit();
     // Apply PCT bonus from SPELL_AURA_MOD_POWER_REGEN_PERCENT aura on spirit base regen
     power_regen *= GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_POWER_REGEN_PERCENT, POWER_MANA);
 
-    // Mana regen from SPELL_AURA_MOD_POWER_REGEN aura
-    float power_regen_mp5 = (GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_POWER_REGEN, POWER_MANA) + m_baseManaRegen) / 5.0f;
+    // Drink regen is a seated SPELL_AURA_MOD_POWER_REGEN aura. Split it from
+    // normal flat mana regen so servers can tune drinking independently.
+    float drink_regen_mp5 = 0.0f;
+    AuraEffectList const& flatManaRegenAuras = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN);
+    for (AuraEffect const* aura : flatManaRegenAuras)
+        if (aura->GetMiscValue() == POWER_MANA && (aura->GetSpellInfo()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED))
+            drink_regen_mp5 += aura->GetAmount() / 5.0f;
+
+    // Mana regen from normal SPELL_AURA_MOD_POWER_REGEN auras and base regen.
+    float normal_regen_mp5 = (GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_POWER_REGEN, POWER_MANA) + m_baseManaRegen) / 5.0f - drink_regen_mp5;
 
     // Get bonus from SPELL_AURA_MOD_MANA_REGEN_FROM_STAT aura
     AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_MANA_REGEN_FROM_STAT);
     for (AuraEffectList::const_iterator i = regenAura.begin(); i != regenAura.end(); ++i)
     {
-        power_regen_mp5 += GetStat(Stats((*i)->GetMiscValue())) * (*i)->GetAmount() / 500.0f;
+        normal_regen_mp5 += GetStat(Stats((*i)->GetMiscValue())) * (*i)->GetAmount() / 500.0f;
     }
 
     // Set regen rate in cast state apply only on spirit based regen
     int32 modManaRegenInterrupt = GetTotalAuraModifier(SPELL_AURA_MOD_MANA_REGEN_INTERRUPT);
     if (modManaRegenInterrupt > 100)
         modManaRegenInterrupt = 100;
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + AsUnderlyingType(POWER_MANA), power_regen_mp5 + CalculatePct(power_regen, modManaRegenInterrupt));
+    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + AsUnderlyingType(POWER_MANA),
+        (normal_regen_mp5 + CalculatePct(power_regen, modManaRegenInterrupt)) * ManaIncreaseRate + drink_regen_mp5 * ManaDrinkIncreaseRate);
 
-    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + AsUnderlyingType(POWER_MANA), power_regen_mp5 + power_regen);
+    SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + AsUnderlyingType(POWER_MANA),
+        (normal_regen_mp5 + power_regen) * ManaIncreaseRate + drink_regen_mp5 * ManaDrinkIncreaseRate);
 }
 
 void Player::UpdateEnergyRegen()

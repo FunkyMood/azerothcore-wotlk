@@ -9053,6 +9053,88 @@ void ObjectMgr::LoadCreatureQuestEnders()
     }
 }
 
+void ObjectMgr::LoadGideonClassQuestRules()
+{
+    uint32 oldMSTime = getMSTime();
+    _gideonClassQuestRaceMasks.clear();
+    _gideonAracLineageMasks.clear();
+
+    QueryResult result = WorldDatabase.Query(
+        "SELECT quest_id, race_mask FROM gideon_class_quest_rules");
+
+    if (!result)
+    {
+        LOG_INFO("server.loading", ">> Loaded 0 Sir Gideon class quest rules. Table is empty.");
+        LOG_INFO("server.loading", " ");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 questId = fields[0].Get<uint32>();
+        uint32 raceMask = fields[1].Get<uint32>();
+
+        if (!_questTemplates.contains(questId))
+        {
+            LOG_ERROR("sql.sql", "Table `gideon_class_quest_rules` references non-existing quest {}, ignoring", questId);
+            continue;
+        }
+
+        if (!raceMask)
+        {
+            LOG_ERROR("sql.sql", "Table `gideon_class_quest_rules` has an empty race mask for quest {}, ignoring", questId);
+            continue;
+        }
+
+        _gideonClassQuestRaceMasks[questId] = raceMask;
+    } while (result->NextRow());
+
+    LOG_INFO("server.loading", ">> Loaded {} Sir Gideon class quest rules in {} ms",
+        _gideonClassQuestRaceMasks.size(), GetMSTimeDiffToNow(oldMSTime));
+
+    QueryResult lineageResult = WorldDatabase.Query(
+        "SELECT race_id, class_id, quest_race_mask FROM gideon_arac_lineages");
+
+    if (lineageResult)
+    {
+        do
+        {
+            Field* fields = lineageResult->Fetch();
+            uint8 race = fields[0].Get<uint8>();
+            uint8 playerClass = fields[1].Get<uint8>();
+            uint32 questRaceMask = fields[2].Get<uint32>();
+
+            if (!race || !playerClass || !questRaceMask)
+            {
+                LOG_ERROR("sql.sql", "Table `gideon_arac_lineages` has an invalid row for race {}, class {}, ignoring",
+                    race, playerClass);
+                continue;
+            }
+
+            _gideonAracLineageMasks[(uint32(race) << 8) | playerClass] = questRaceMask;
+        } while (lineageResult->NextRow());
+    }
+
+    LOG_INFO("server.loading", ">> Loaded {} Sir Gideon ARAC lineage rules",
+        _gideonAracLineageMasks.size());
+    LOG_INFO("server.loading", " ");
+}
+
+bool ObjectMgr::IsGideonClassQuestAllowed(uint32 questId, uint8 race, uint8 playerClass) const
+{
+    auto itr = _gideonClassQuestRaceMasks.find(questId);
+    if (itr == _gideonClassQuestRaceMasks.end())
+        return true;
+
+    uint32 lineageMask = 1u << (race - 1);
+    auto lineageItr = _gideonAracLineageMasks.find((uint32(race) << 8) | playerClass);
+    if (lineageItr != _gideonAracLineageMasks.end())
+        lineageMask = lineageItr->second;
+
+    return (itr->second & lineageMask) != 0;
+}
+
 void ObjectMgr::LoadReservedPlayerNamesDB()
 {
     uint32 oldMSTime = getMSTime();
@@ -10147,9 +10229,9 @@ void ObjectMgr::LoadTrainers()
             ASSERT(isNew);
             if (trainerType == Trainer::Type::Class)
             {
-                if (!requirement || requirement >= MAX_CLASSES)
-                    LOG_ERROR("sql.sql", "Table `trainer` has invalid class requirement for trainer {}, ignoring");
-                else
+                if (requirement >= MAX_CLASSES)
+                    LOG_ERROR("sql.sql", "Table `trainer` has invalid class requirement for trainer {}, ignoring", trainerId);
+                else if (requirement)
                 {
                     uint8 classId = static_cast<uint8>(requirement);
                     _classTrainers[classId].push_back(&it->second);

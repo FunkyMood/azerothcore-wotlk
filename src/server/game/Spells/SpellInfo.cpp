@@ -27,6 +27,9 @@
 #include "SpellAuraDefines.h"
 #include "SpellAuraEffects.h"
 #include "SpellMgr.h"
+#include "World.h"
+
+#include <cmath>
 
 uint32 GetTargetFlagMask(SpellTargetObjectTypes objType)
 {
@@ -2883,6 +2886,28 @@ int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask, S
 
     // PCT mod from user auras by school
     powerCost = int32(powerCost * (1.0f + caster->GetFloatValue(static_cast<uint16>(UNIT_FIELD_POWER_COST_MULTIPLIER) + school)));
+
+    // Configurable mana-cost scaling for player characters. Applied after normal
+    // spell and aura cost modifiers so the configured multiplier affects final cost.
+    if (PowerType == POWER_MANA && caster->IsPlayer() && powerCost > 0)
+    {
+        ServerConfigs manaCostRate;
+        uint8 const level = caster->GetLevel();
+
+        if (level <= 10)
+            manaCostRate = RATE_SPELL_MANA_COST_LEVEL_1_10;
+        else if (level <= 20)
+            manaCostRate = RATE_SPELL_MANA_COST_LEVEL_11_20;
+        else if (level <= 30)
+            manaCostRate = RATE_SPELL_MANA_COST_LEVEL_21_30;
+        else if (level <= 40)
+            manaCostRate = RATE_SPELL_MANA_COST_LEVEL_31_40;
+        else
+            manaCostRate = RATE_SPELL_MANA_COST_LEVEL_41_PLUS;
+
+        powerCost = int32(std::ceil(float(powerCost) * sWorld->getRate(manaCostRate)));
+    }
+
     if (powerCost < 0)
         powerCost = 0;
     return powerCost;
