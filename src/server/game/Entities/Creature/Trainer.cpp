@@ -48,6 +48,15 @@ namespace Trainer
             if (!player->IsSpellFitByClassAndRace(trainerSpell.SpellId))
                 continue;
 
+            // A trainer covering every profession would otherwise list hundreds of
+            // recipes the character can never use. Hide those tied to a skill line
+            // the player has not learned at all; the spells that teach a profession
+            // carry no skill requirement and therefore always remain visible. Once
+            // a profession is known its whole recipe list appears, including entries
+            // still out of skill range, so the progression stays readable.
+            if (_trainerId == 200002 && trainerSpell.ReqSkillLine && !player->HasSkill(trainerSpell.ReqSkillLine))
+                continue;
+
             SpellInfo const* trainerSpellInfo = sSpellMgr->AssertSpellInfo(trainerSpell.SpellId);
 
             bool primaryProfessionFirstRank = false;
@@ -115,6 +124,15 @@ namespace Trainer
             player->learnSpell(trainerSpell->SpellId, false);
 
         SendTeachSucceeded(npc, player, spellId);
+
+        // Resend the trainer list so client-side availability (skill rank,
+        // prerequisite spell) reflects what was just learned immediately.
+        // Without this, the client keeps showing its pre-purchase snapshot
+        // until the trainer window is closed and reopened, which is
+        // especially visible the moment a profession's very first spell is
+        // learned: every recipe briefly renders as buyable.
+        if (_trainerId == 200002)
+            SendSpells(npc, player, player->GetSession()->GetSessionDbLocaleIndex());
     }
 
     Spell const* Trainer::GetSpell(uint32 spellId) const

@@ -18,6 +18,8 @@
 #include "Player.h"
 #include "WorldConfig.h"
 
+#include <cmath>
+
 void WorldConfig::BuildConfigCache()
 {
     SetConfigValue<bool>(CONFIG_ALLOW_TICKETS, "AllowTickets", true);
@@ -29,6 +31,13 @@ void WorldConfig::BuildConfigCache()
     ///- Read all rates from the config file
     SetConfigValue<float>(RATE_HEALTH, "Rate.Health", 1.0f, ConfigValueCache::Reloadable::Yes, [](float const& value) { return value > 0.0f; }, "> 0");
     SetConfigValue<float>(RATE_POWER_MANA, "Rate.Mana", 1.0f, ConfigValueCache::Reloadable::Yes, [](float const& value) { return value > 0.0f; }, "> 0");
+    SetConfigValue<float>(RATE_POWER_MANA_DRINK, "Rate.Mana.Drink", 1.0f, ConfigValueCache::Reloadable::Yes, [](float const& value) { return value > 0.0f; }, "> 0");
+    auto const isValidManaCostRate = [](float const& value) { return std::isfinite(value) && value > 0.0f && value <= 100.0f; };
+    SetConfigValue<float>(RATE_SPELL_MANA_COST_LEVEL_1_10, "Rate.Spell.ManaCost.Level1To10", 1.0f, ConfigValueCache::Reloadable::Yes, isValidManaCostRate, "> 0 and <= 100");
+    SetConfigValue<float>(RATE_SPELL_MANA_COST_LEVEL_11_20, "Rate.Spell.ManaCost.Level11To20", 1.0f, ConfigValueCache::Reloadable::Yes, isValidManaCostRate, "> 0 and <= 100");
+    SetConfigValue<float>(RATE_SPELL_MANA_COST_LEVEL_21_30, "Rate.Spell.ManaCost.Level21To30", 1.0f, ConfigValueCache::Reloadable::Yes, isValidManaCostRate, "> 0 and <= 100");
+    SetConfigValue<float>(RATE_SPELL_MANA_COST_LEVEL_31_40, "Rate.Spell.ManaCost.Level31To40", 1.0f, ConfigValueCache::Reloadable::Yes, isValidManaCostRate, "> 0 and <= 100");
+    SetConfigValue<float>(RATE_SPELL_MANA_COST_LEVEL_41_PLUS, "Rate.Spell.ManaCost.Level41Plus", 1.0f, ConfigValueCache::Reloadable::Yes, isValidManaCostRate, "> 0 and <= 100");
     SetConfigValue<float>(RATE_POWER_RAGE_INCOME, "Rate.Rage.Income", 1.0f);
     SetConfigValue<float>(RATE_POWER_RAGE_LOSS, "Rate.Rage.Loss", 1.0f, ConfigValueCache::Reloadable::Yes, [](float const& value) { return value > 0.0f; }, "> 0");
     SetConfigValue<float>(RATE_POWER_RUNICPOWER_INCOME, "Rate.RunicPower.Income", 1.0f);

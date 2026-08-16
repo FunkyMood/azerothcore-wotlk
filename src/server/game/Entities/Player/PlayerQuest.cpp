@@ -44,6 +44,7 @@ void Player::PrepareQuestMenu(ObjectGuid guid)
 
     // pets also can have quests
     Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this, guid);
+    bool const isSirGideon = creature && (creature->GetEntry() == 200000 || creature->GetEntry() == 200001);
     if (creature)
     {
         objectQR  = sObjectMgr->GetCreatureQuestRelationBounds(creature->GetEntry());
@@ -85,6 +86,12 @@ void Player::PrepareQuestMenu(ObjectGuid guid)
         uint32 quest_id = i->second;
         Quest const* quest = sObjectMgr->GetQuestTemplate(quest_id);
         if (!quest)
+            continue;
+
+        if (isSirGideon && HasQuest(quest_id))
+            continue;
+
+        if (isSirGideon && !sObjectMgr->IsGideonClassQuestAllowed(quest_id, getRace(), getClass()))
             continue;
 
         if (!CanTakeQuest(quest, false))
@@ -1632,6 +1639,8 @@ QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
 {
     QuestRelationBounds qr;
     QuestRelationBounds qir;
+    bool const isSirGideon = questgiver->IsCreature()
+        && (questgiver->GetEntry() == 200000 || questgiver->GetEntry() == 200001);
 
     sScriptMgr->GetDialogStatus(this, questgiver);
 
@@ -1702,6 +1711,12 @@ QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
         uint32 questId = i->second;
         Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
         if (!quest)
+            continue;
+
+        if (isSirGideon && HasQuest(questId))
+            continue;
+
+        if (isSirGideon && !sObjectMgr->IsGideonClassQuestAllowed(questId, getRace(), getClass()))
             continue;
 
         ConditionList conditions = sConditionMgr->GetConditionsForNotGroupedEntry(CONDITION_SOURCE_TYPE_QUEST_AVAILABLE, quest->GetQuestId());

@@ -130,6 +130,15 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
         return;
     }
 
+    bool const isSirGideon = object->IsCreature()
+        && (object->GetEntry() == 200000 || object->GetEntry() == 200001);
+    if (isSirGideon && _player->HasQuest(questId))
+    {
+        _player->PlayerTalkClass->SendCloseGossip();
+        _player->SetDivider();
+        return;
+    }
+
     // some kind of WPE protection
     if (!_player->CanInteractWithQuestGiver(object))
         return;
@@ -211,6 +220,14 @@ void WorldSession::HandleQuestgiverQueryQuestOpcode(WorldPacket& recvData)
     // Verify that the guid is valid and is a questgiver or involved in the requested quest
     Object* object = ObjectAccessor::GetObjectByTypeMask(*_player, guid, TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM);
     if (!object || (!object->hasQuest(questId) && !object->hasInvolvedQuest(questId)))
+    {
+        _player->PlayerTalkClass->SendCloseGossip();
+        return;
+    }
+
+    bool const isSirGideon = object->IsCreature()
+        && (object->GetEntry() == 200000 || object->GetEntry() == 200001);
+    if (isSirGideon && _player->HasQuest(questId))
     {
         _player->PlayerTalkClass->SendCloseGossip();
         return;

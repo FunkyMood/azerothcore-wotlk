@@ -2190,6 +2190,7 @@ Rate.Talent.Pet = 1
 #
 #    Rate.Health
 #    Rate.Mana
+#    Rate.Mana.Drink
 #    Rate.Rage.Income
 #    Rate.Rage.Loss
 #    Rate.RunicPower.Income
@@ -2200,6 +2201,7 @@ Rate.Talent.Pet = 1
 #                     energy and loyalty increase or decrease.
 #        Default:     1 - (Rate.Health)
 #                     1 - (Rate.Mana)
+#                     1 - (Rate.Mana.Drink)
 #                     1 - (Rate.Rage.Income)
 #                     1 - (Rate.Rage.Loss)
 #                     1 - (Rate.RunicPower.Income)
@@ -2209,6 +2211,7 @@ Rate.Talent.Pet = 1
 
 Rate.Health            = 1
 Rate.Mana              = 1
+Rate.Mana.Drink        = 1
 Rate.Rage.Income       = 1
 Rate.Rage.Loss         = 1
 Rate.RunicPower.Income = 1
@@ -2216,6 +2219,23 @@ Rate.RunicPower.Loss   = 1
 Rate.Focus             = 1
 Rate.Energy            = 1
 Rate.Loyalty           = 1
+
+#
+#    Rate.Spell.ManaCost.Level1To10
+#    Rate.Spell.ManaCost.Level11To20
+#    Rate.Spell.ManaCost.Level21To30
+#    Rate.Spell.ManaCost.Level31To40
+#    Rate.Spell.ManaCost.Level41Plus
+#        Description: Multiplier for mana costs paid by player characters in each level bracket.
+#                     It affects ordinary mana-consuming spells only; it does not affect creatures,
+#                     pets, item casts, or spells that consume all available mana.
+#        Default:     1 - all brackets
+#
+Rate.Spell.ManaCost.Level1To10   = 1
+Rate.Spell.ManaCost.Level11To20  = 1
+Rate.Spell.ManaCost.Level21To30  = 1
+Rate.Spell.ManaCost.Level31To40  = 1
+Rate.Spell.ManaCost.Level41Plus  = 1
 
 #
 #    Rate.Rest.InGame

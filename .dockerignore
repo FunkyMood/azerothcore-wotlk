@@ -12,3 +12,18 @@
 
 # do not ignore the ccache folder (used by the ci)
 !/var/docker/ccache
+
+# Local backups and reference drafts are not build inputs.
+/backup_*.sql
+/backups/*
+/dbc-backup/*
+/external-prestige-draft/*
+/lua_scripts_backup_*/*
+/work/*
+*_build.log
+*_build.err.log
+
+# Generation evidence, written beside each migration. Nothing in the image
+# reads it, and at half a gigabyte apiece it is the largest single thing the
+# daemon would be asked to carry on every build.
+*.provenance.json

@@ -64,6 +64,7 @@
 #include "MapMgr.h"
 #include "Metric.h"
 #include "MotdMgr.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
 #include "OutdoorPvPMgr.h"
@@ -188,6 +189,10 @@ void World::LoadConfigSettings(bool reload)
         sWorldSessionMgr->SetPlayerAmountLimit(sConfigMgr->GetOption<int32>("PlayerLimit", 1000));
 
     _worldConfig.Initialize(reload);
+
+    if (reload)
+        for (auto const& playerPair : ObjectAccessor::GetPlayers())
+            playerPair.second->UpdateManaRegen();
 
     for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
         playerBaseMoveSpeed[i] = baseMoveSpeed[i] * getRate(RATE_MOVESPEED_PLAYER);
@@ -607,6 +612,9 @@ void World::SetInitialWorldSettings()
 
     LOG_INFO("server.loading", "Loading Quests...");
     sObjectMgr->LoadQuests();                                    // must be loaded after DBCs, creature_template, item_template, gameobject tables
+
+    LOG_INFO("server.loading", "Loading Sir Gideon Class Quest Rules...");
+    sObjectMgr->LoadGideonClassQuestRules();                     // must be loaded after quest templates
 
     LOG_INFO("server.loading", "Checking Quest Disables");
     sDisableMgr->CheckQuestDisables();                           // must be after loading quests

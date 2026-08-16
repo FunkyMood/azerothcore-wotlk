@@ -958,6 +958,8 @@ public:
     }
 
     void LoadQuests();
+    void LoadGideonClassQuestRules();
+    [[nodiscard]] bool IsGideonClassQuestAllowed(uint32 questId, uint8 race, uint8 playerClass) const;
     void LoadQuestMoneyRewards();
     void LoadQuestStartersAndEnders()
     {
@@ -1584,6 +1586,8 @@ private:
     QuestRelations _goQuestInvolvedRelations;
     QuestRelations _creatureQuestRelations;
     QuestRelations _creatureQuestInvolvedRelations;
+    std::unordered_map<uint32, uint32> _gideonClassQuestRaceMasks;
+    std::unordered_map<uint32, uint32> _gideonAracLineageMasks;
 
     //character reserved names
     typedef std::set<std::wstring> ReservedNamesContainer;

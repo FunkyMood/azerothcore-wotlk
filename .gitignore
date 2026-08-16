@@ -118,3 +118,28 @@ __pycache__/
 #  !modules/yourmodule
 #
 # ==================
+
+# Generation evidence. apps/bulletin/generate.py writes one of these beside
+# every migration it emits: every question it asked the database or the client
+# extracts, with the source and columns behind each answer. Useful to a person
+# months later, read by no code.
+#
+# They are also enormous - half a gigabyte each at the time of writing - and
+# they are not content. Committing one would fail the push outright, since the
+# limit is a hundred megabytes, and a forced commit before anyone noticed would
+# put it in the history for good.
+*.provenance.json
+
+# Local copies of the world, kept while a migration is being proved out. Ninety
+# megabytes, and reproducible from the database at any time.
+/backups/
+/dbc-backup/
+/lua_scripts_backup_*/
+/backup_*.sql
+
+# Working drafts and one-off build transcripts. Neither is an input to
+# anything; both are the kind of file that quietly accumulates.
+/external-prestige-draft/
+/work/
+*_build.log
+*_build.err.log
