@@ -1,0 +1,38 @@
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+DROP TABLE IF EXISTS `bulletin_board_quests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `bulletin_board_quests` (
+  `board_id` mediumint unsigned NOT NULL,
+  `quest_id` mediumint unsigned NOT NULL,
+  `unlock_level` tinyint unsigned NOT NULL DEFAULT '1',
+  `sort_order` smallint unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`board_id`,`quest_id`),
+  UNIQUE KEY `uq_bulletin_board_quests_sort` (`board_id`,`sort_order`),
+  CONSTRAINT `fk_bulletin_board_quests_board` FOREIGN KEY (`board_id`) REFERENCES `bulletin_boards` (`board_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+/*!40000 ALTER TABLE `bulletin_board_quests` DISABLE KEYS */;
+INSERT INTO `bulletin_board_quests` VALUES (1,90101,4,1),(1,90102,2,2),(1,90103,1,3),(1,90104,1,4),(1,90105,2,5),(1,90106,2,6),(1,90107,3,7),(1,90108,2,8),(2,90201,7,1),(2,90202,5,2),(2,90203,5,3),(2,90204,5,4),(2,90205,5,5),(2,90206,8,6),(2,90207,7,7),(2,90208,6,8),(2,90209,5,9),(2,90210,7,10),(5,90501,4,1),(5,90502,3,2),(5,90503,1,3),(5,90504,1,4),(5,90505,2,5),(5,90506,1,6),(5,90507,2,7),(5,90508,2,8);
+/*!40000 ALTER TABLE `bulletin_board_quests` ENABLE KEYS */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
