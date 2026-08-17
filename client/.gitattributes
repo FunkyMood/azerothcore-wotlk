@@ -1,0 +1,10 @@
+# Everything in this directory is binary and must be stored byte for byte.
+#
+# The repository root sets `* text eol=lf`, which is right for source and
+# fatal here: committing Patch-A.MPQ under that rule rewrote bytes inside the
+# archive that happened to look like line endings, and the file that came back
+# out was not the file that went in. It was pushed that way once.
+#
+# The DBC files survived only because they contained no such sequences, which
+# is luck rather than safety.
+* binary
