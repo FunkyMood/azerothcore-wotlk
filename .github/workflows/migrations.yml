@@ -1,0 +1,106 @@
+name: migrations
+
+# Rebuild the three databases from nothing and replay every migration in order.
+#
+# This realm could not do that until its base was rebuilt from the live world.
+# The chain stopped on mod-ah-bot's SQL, because a module's update directories
+# are compiled into the updater rather than discovered, so the order module SQL
+# ran in relative to the released updates only ever worked here by accident of
+# when each was first applied.
+#
+# Everything lives in this repository - core, migrations, custom SQL - so
+# unlike Ironcore this needs one checkout rather than two. Only data/sql is
+# fetched; it is close to a gigabyte on its own.
+
+on:
+  push:
+    branches: [traditional]
+    paths:
+      - 'data/sql/**'
+      - '.github/workflows/migrations.yml'
+  pull_request:
+    branches: [traditional]
+    paths:
+      - 'data/sql/**'
+      - '.github/workflows/migrations.yml'
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -uroot -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            data/sql
+
+      - name: Replay onto an empty database
+        # The stock image, which has no modules compiled into it and so never
+        # applies module SQL. That is survivable because the rebuilt base
+        # already holds every module table with its thirteen module migrations
+        # recorded, leaving nothing to apply. Adding a module turns this red
+        # with a missing table, which is the right answer: the base needs
+        # rebuilding too.
+        #
+        # acore_playerbots is not here and cannot be. It is a fourth database,
+        # created and updated by the worldserver itself from the sixty-eight
+        # SQL files mod-playerbots ships, with its own updates table of 28
+        # records. db-import handles three databases and knows nothing about
+        # it, so nothing below covers it.
+        run: |
+          docker run --rm --network host \
+            -e AC_LOGIN_DATABASE_INFO="127.0.0.1;3306;root;password;acore_auth" \
+            -e AC_WORLD_DATABASE_INFO="127.0.0.1;3306;root;password;acore_world" \
+            -e AC_CHARACTER_DATABASE_INFO="127.0.0.1;3306;root;password;acore_characters" \
+            -e AC_UPDATES_ENABLE_DATABASES=7 \
+            -e AC_UPDATES_AUTO_SETUP=1 \
+            -v "${{ github.workspace }}/data/sql:/azerothcore/data/sql:ro" \
+            acore/ac-wotlk-db-import:master 2>&1 | tee import.log
+
+      - name: Fail on anything the updater complained about
+        # A zero exit code is not an answer on its own: every failure found
+        # while building the equivalent workflow for Ironcore exited zero.
+        run: |
+          if grep -qiE "missing in your update directory|Cannot apply|Failed to apply|Applying of file .* failed|Errors were detected" import.log; then
+            echo "The updater reported a problem while replaying:"
+            grep -iE "missing in your update directory|Cannot apply|Failed to apply|Applying of file .* failed|Errors were detected" import.log
+            exit 1
+          fi
+
+      - name: Check the database was actually built
+        # The step above only proves the log holds no complaints, and a log
+        # holds no complaints when nothing happened either. So ask the database
+        # what it contains. The floors are what was verified against the live
+        # realm when the base was rebuilt: 321 tables, 2796 recorded
+        # migrations, 149969 creature spawns. They only grow.
+        run: |
+          q() { mysql -h 127.0.0.1 -uroot -ppassword -N -B -e "$1"; }
+
+          tables=$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='acore_world' AND table_type='BASE TABLE';")
+          updates=$(q "SELECT COUNT(*) FROM acore_world.updates;")
+          creatures=$(q "SELECT COUNT(*) FROM acore_world.creature;")
+
+          echo "tables=$tables updates=$updates creatures=$creatures"
+
+          fail=0
+          [ "$tables"    -ge 321    ] || { echo "world has $tables base tables, expected at least 321"; fail=1; }
+          [ "$updates"   -ge 2796   ] || { echo "world records $updates migrations, expected at least 2796"; fail=1; }
+          [ "$creatures" -ge 149969 ] || { echo "world has $creatures creature spawns, expected at least 149969"; fail=1; }
+
+          [ $fail -eq 0 ] && echo "Rebuilt from nothing and the contents check out."
+          exit $fail
