@@ -39,6 +39,17 @@ services:
           cpus: '4'
           memory: 6G
   ac-db-import:
+    # The SQL is baked into the image at build time, so a container started
+    # from an older image carries an older copy: migrations written since are
+    # simply not there, and db-import reports them as applied to the database
+    # but missing from the update directory. That is what it has been saying
+    # about forty-six upstream files restored to disk - it could not see them.
+    #
+    # It is also how a realm ends up with migrations applied by hand: writing
+    # the file appears to do nothing, because the file never reaches the
+    # container. Read-only, since db-import reads these and never writes them.
+    volumes:
+      - ./data/sql:/azerothcore/data/sql:ro
     networks:
       - ac-network
       - ac-shared
