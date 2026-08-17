@@ -1,13 +1,15 @@
--- MySQL dump 10.13  Distrib 8.4.3, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.4.10, for Linux (x86_64)
 --
 -- Host: localhost    Database: acore_world
 -- ------------------------------------------------------
--- Server version	8.4.3
+-- Server version	8.4.10
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
@@ -35,21 +37,10 @@ CREATE TABLE `player_race_stats` (
 -- Dumping data for table `player_race_stats`
 --
 
-LOCK TABLES `player_race_stats` WRITE;
 /*!40000 ALTER TABLE `player_race_stats` DISABLE KEYS */;
-INSERT INTO `player_race_stats` VALUES
-(1,0,0,0,0,0),
-(2,3,-3,1,-3,2),
-(3,5,-4,1,-1,-1),
-(4,-4,4,0,0,0),
-(5,-1,-2,0,-2,5),
-(6,5,-4,1,-4,2),
-(7,-5,2,0,3,0),
-(8,1,2,0,-4,1),
-(10,-3,2,0,3,-2),
-(11,1,-3,0,0,2);
+INSERT INTO `player_race_stats` VALUES (1,0,0,0,0,0),(2,3,-3,1,-3,2),(3,5,-4,1,-1,-1),(4,-4,4,0,0,0),(5,-1,-2,0,-2,5),(6,5,-4,1,-4,2),(7,-5,2,0,3,0),(8,1,2,0,-4,1),(10,-3,2,0,3,-2),(11,1,-3,0,0,2);
 /*!40000 ALTER TABLE `player_race_stats` ENABLE KEYS */;
-UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
@@ -59,4 +50,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-01 22:40:20
+-- Dump completed on 2026-08-17  6:17:57
