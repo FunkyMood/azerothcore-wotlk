@@ -1719,6 +1719,17 @@ QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
         if (!quest)
             continue;
 
+        if (isSirGideon && HasQuest(questId))
+            continue;
+
+        if (isSirGideon && !sObjectMgr->IsGideonClassQuestAllowed(questId, getRace(), getClass()))
+            continue;
+
+        // Gideon's marker must describe the same catalogue that his custom
+        // gossip menu can actually offer, not quests for a future level.
+        if (isSirGideon && !CanTakeQuest(quest, false))
+            continue;
+
         ConditionList conditions = sConditionMgr->GetConditionsForNotGroupedEntry(CONDITION_SOURCE_TYPE_QUEST_AVAILABLE, quest->GetQuestId());
         if (!sConditionMgr->IsObjectMeetToConditions(this, conditions))
             continue;

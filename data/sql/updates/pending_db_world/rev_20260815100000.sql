@@ -862,8 +862,14 @@ INSERT INTO `_gideon_candidate_routes`
     (`quest`, `native_mask`, `class_mask`, `route_target`, `is_breadcrumb`,
      `min_level`, `title_key`)
 SELECT `incipit`.`quest`,
-       COALESCE(NULLIF(`stock`.`race_mask`, 0), `inferred`.`race_mask`,
-                NULLIF(`quest`.`AllowableRaces`, 0), 1791),
+       CASE
+         -- A one-race stock mask is more precise than shared starting-zone
+         -- geography (Dwarf/Gnome and Orc/Troll). Broad faction masks instead
+         -- defer to the original quest giver's racial home.
+         WHEN BIT_COUNT(COALESCE(`stock`.`race_mask`, 0)) = 1 THEN `stock`.`race_mask`
+         ELSE COALESCE(`inferred`.`race_mask`, NULLIF(`stock`.`race_mask`, 0),
+                       NULLIF(`quest`.`AllowableRaces`, 0), 1791)
+       END,
        `addon`.`AllowableClasses`,
        CASE
          WHEN `addon`.`BreadcrumbForQuestId` <> 0 THEN `addon`.`BreadcrumbForQuestId`
