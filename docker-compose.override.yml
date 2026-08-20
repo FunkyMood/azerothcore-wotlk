@@ -1,17 +1,14 @@
-# Accounts live in the shared auth service (see the wow-infra stack), not in
-# this realm's database, so a single login works across every realm and each
-# realm can run without the others.
+# Accounts live in this realm's own database and its own authserver, which is
+# what the base compose file already describes - this file only narrows what
+# that stack exposes and how much of the machine it may use.
 #
-# Start order: bring up the auth stack first, then this one.
+# It said the opposite until the second realm was retired: logins came from a
+# separate wow-infra stack so that either realm could run alone. With one realm
+# left that separation was a service to keep running for nobody.
 services:
-  # Logins are handled by the shared auth service (wow-infra stack), so this
-  # realm has no authserver of its own. The profile keeps it from starting even
-  # on a plain "docker compose up".
-  ac-authserver:
-    profiles: [unused]
-
   ac-database:
-    # Holds this realm's world and character data only.
+    # Holds the accounts as well as the world and character data, since
+    # the realm stopped borrowing a login service from elsewhere.
     # Bound to loopback: local tools still reach it, but it is not exposed to
     # the LAN, the VPN, or (on a server) the internet.
     ports: !override
@@ -26,9 +23,6 @@ services:
   ac-worldserver:
     networks:
       - ac-network
-      - ac-shared
-    environment:
-      AC_LOGIN_DATABASE_INFO: authdb-shared;3306;root;${DB_ROOT_PASSWORD:-password};acore_auth
     volumes:
       - ./modules:/azerothcore/modules:ro
       - ./breakingnews.html:/azerothcore/breakingnews.html
@@ -52,10 +46,3 @@ services:
       - ./data/sql:/azerothcore/data/sql:ro
     networks:
       - ac-network
-      - ac-shared
-    environment:
-      AC_LOGIN_DATABASE_INFO: authdb-shared;3306;root;${DB_ROOT_PASSWORD:-password};acore_auth
-
-networks:
-  ac-shared:
-    external: true
