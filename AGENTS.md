@@ -40,6 +40,17 @@ Tests (Google Test, in `src/test/`): configure with `-DBUILD_TESTING=ON`, then `
 
 ## Adding SQL updates
 
+### Applying migrations locally
+
+- **Never apply SQL migrations with the MySQL client, manually or through a script.**
+  Every core, content, and module migration must be applied exclusively by
+  `docker compose run --rm ac-db-import` from the repository root.
+- Before running the importer, confirm its Compose service mounts both
+  `./data/sql` and `./modules` read-only. Module migrations are otherwise
+  invisible to the importer until a new image is built.
+- Treat a successful `ac-db-import` run and its recorded update as the only
+  valid confirmation that a migration has been applied.
+
 1. `cd data/sql/updates/pending_db_world/` (or `pending_db_auth` / `pending_db_characters`).
 2. `./create_sql.sh` generates an empty `rev_<timestamp>.sql` you write into.
 3. Required SQL conventions (enforced by `apps/codestyle/codestyle-sql.py`):

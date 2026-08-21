@@ -44,5 +44,9 @@ services:
     # container. Read-only, since db-import reads these and never writes them.
     volumes:
       - ./data/sql:/azerothcore/data/sql:ro
+      # Module migrations are discovered from the module directories at
+      # runtime. Mount them too, otherwise a new module SQL file is invisible
+      # to db-import until a new image has been built.
+      - ./modules:/azerothcore/modules:ro
     networks:
       - ac-network
