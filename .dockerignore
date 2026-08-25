@@ -18,3 +18,8 @@
 /backup_db/*
 /dbc-backup/*
 /lua_scripts_backup_*/*
+# Runtime data and logs are mounted separately and are not compilation inputs.
+/data/*
+/logs/*
+/modules/*/.git/*
+/.git
