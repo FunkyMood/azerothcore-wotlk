@@ -40,24 +40,29 @@ local function OnCampCast(event, player, spell, skipCheck)
     end
 
     local x, y, z, o = player:GetX(), player:GetY(), player:GetZ(), player:GetO()
+    local map = player:GetMap()
 
     -- tent farther out in front of the player, entrance facing back toward the player (orientation
-    -- flipped 180 degrees from the player's own facing)
+    -- flipped 180 degrees from the player's own facing). Terrain height is queried at the tent's own
+    -- offset position rather than reused from the player - on sloped ground the player's Z is wrong by
+    -- the time you're 6.5 yards away, which is what made the tent float or clip into the ground.
     local tentDist = 6.5
     local tentX = x + tentDist * math.cos(o)
     local tentY = y + tentDist * math.sin(o)
+    local tentZ = map:GetHeight(tentX, tentY) or z
     local tentO = o + math.pi
-    player:SummonGameObject(TENT_ENTRY, tentX, tentY, z, tentO, TENT_RESPAWN_SECONDS)
+    player:SummonGameObject(TENT_ENTRY, tentX, tentY, tentZ, tentO, TENT_RESPAWN_SECONDS)
 
     -- rug placed exactly under the tent (same position/orientation)
-    player:SummonGameObject(RUG_ENTRY, tentX, tentY, z, tentO, RUG_RESPAWN_SECONDS)
+    player:SummonGameObject(RUG_ENTRY, tentX, tentY, tentZ, tentO, RUG_RESPAWN_SECONDS)
 
     -- hookah placed inside the tent, on its left side (offset relative to the tent's own position/facing,
     -- not the player's - so it sits inside the tent wherever the tent ends up)
     local hookahOffset = 0.7
     local hookahX = tentX + hookahOffset * math.cos(tentO + math.pi / 2)
     local hookahY = tentY + hookahOffset * math.sin(tentO + math.pi / 2)
-    player:SummonGameObject(HOOKAH_ENTRY, hookahX, hookahY, z, tentO, HOOKAH_RESPAWN_SECONDS)
+    local hookahZ = map:GetHeight(hookahX, hookahY) or tentZ
+    player:SummonGameObject(HOOKAH_ENTRY, hookahX, hookahY, hookahZ, tentO, HOOKAH_RESPAWN_SECONDS)
 end
 
 RegisterGameObjectEvent(HOOKAH_ENTRY, GAMEOBJECT_EVENT_ON_USE, OnHookahUse)
