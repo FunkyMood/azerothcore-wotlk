@@ -4,8 +4,8 @@
 -- challenges are reachable at any level, not just while starting a fresh
 -- character. Orgrimmar and Exodar have no in-city graveyard in this data
 -- set (dying there routes to the outdoor Durotar / Azuremyst graveyards),
--- so those two use the same verified in-city coordinates the bulletin
--- board's Wayfinder NPCs already use.
+-- so those two use the nearest real graveyard on record instead (Northern
+-- Durotar, Stillpine GY) rather than an arbitrary in-city coordinate.
 DELETE FROM `gameobject_template` WHERE `entry`=254605;
 INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`, `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`, `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`, `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `AIName`, `ScriptName`, `VerifiedBuild`) VALUES
 (254605, 2, 6925, 'Shrine of Challenge', '', '', '', 1.2, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'gobject_challenge_modes', 0);
@@ -27,8 +27,8 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnMask`, 
 (5714561, 254605, 0, 0, 0, 1, 1, -9151.98, 410.944, 92.6966, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
 (5714562, 254605, 0, 0, 0, 1, 1, -5165.52, -874.664, 507.177, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
 (5714563, 254605, 1, 0, 0, 1, 1, 10054.3, 2117.12, 1329.63, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
-(5714564, 254605, 530, 0, 0, 1, 1, -3976.8, -11643.2, -138.955, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
-(5714565, 254605, 1, 0, 0, 1, 1, 1580.8, -4424.23, 7.18377, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
+(5714564, 254605, 530, 0, 0, 1, 1, -3324.31, -12089.9, 28.2748, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
+(5714565, 254605, 1, 0, 0, 1, 1, 1177.78, -4464.24, 21.3539, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
 (5714566, 254605, 1, 0, 0, 1, 1, -981.917, -74.6465, 20.1265, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
 (5714567, 254605, 0, 0, 0, 1, 1, 1822.61, 214.674, 60.1402, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
 (5714568, 254605, 530, 0, 0, 1, 1, 9407, -6847.67, 16, 0, 0, 0, 0, 1, 300, 0, 1, '', 0),
