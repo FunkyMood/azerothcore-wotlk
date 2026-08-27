@@ -70,6 +70,14 @@ namespace Trainer
                     primaryProfessionFirstRank = true;
             }
 
+            // With every primary profession slot spent, the spells that teach a
+            // new one cannot be bought at all. The client still drew them in
+            // green next to a dead Train button, which reads as a bug rather
+            // than a limit. Hide them while the character is full; unlearning a
+            // profession frees a point and they reappear on their own.
+            if (primaryProfessionFirstRank && !player->GetFreePrimaryProfessionPoints())
+                continue;
+
             trainerList.Spells.emplace_back();
             WorldPackets::NPC::TrainerListSpell& trainerListSpell = trainerList.Spells.back();
             trainerListSpell.SpellID = trainerSpell.SpellId;
