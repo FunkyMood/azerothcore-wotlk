@@ -8,9 +8,13 @@
 -- commands sit on their own line where they can be read at a glance.
 --
 -- $B is a line break, $N the player's name.
-DELETE FROM `npc_text` WHERE `ID` BETWEEN 200020 AND 200027;
+DELETE FROM `npc_text` WHERE `ID` BETWEEN 200020 AND 200028;
 INSERT INTO `npc_text` (`ID`, `text0_0`) VALUES
-(200020, 'Companions - bot characters that play alongside you.$B$BThey can be summoned to follow you, fight with you and carry loot. They take orders, can be equipped and can be dismissed.$B$BYour own characters can be used as companions instead of strangers, so an alt can walk beside you rather than sit at the login screen.$B$BThey log in shortly after a real player joins the realm, and log out once the realm is empty.'),
+-- 200028 is the topic index itself. Deliberately blank: the list of pages
+-- is the content, and the old preamble above it only pushed the topics
+-- down the frame.
+(200028, ' '),
+(200020, 'Companions - bot characters that play alongside you.$B$BSUMMONING - your own characters, from this account:$B.playerbots bot add <name>$B.playerbots bot remove <name>$B$BTo use characters from another of your accounts, link them first:$B.playerbots account link$B$BGIVING ORDERS - whisper the bot, or type in party chat:$Bhelp - the full list of what it understands$Bfollow / stay / flee - how it positions itself$Battack - strike your current target$Bequip / sell / trade - handle its gear and goods$Bstats / talents / spells - inspect it$B$BIts behaviour is set with co (in combat) and nc (out of combat), adding or removing a strategy:$Bco +threat$Bco -cc$B$BThe wandering bots you meet in the world are not yours to command. They log in shortly after a real player joins the realm, and log out once it empties.'),
 (200021, 'Experience rate - adjustable per character.$B$BRight-click your experience bar, or type:$B.xp set <number>$B$BRange: 0 to 10. Default: 1.$B$BThe rate applies only to the character that sets it. Each of your other characters keeps its own.'),
 (200022, 'Challenges - optional rulesets, taken from me.$B$BHardcore: death is permanent.$BSemi-Hardcore: death costs you all worn gear and all carried gold.$BSelf-Crafted: you may only wear what you crafted yourself.$BItem Quality: you may only wear grey and white gear.$BQuest XP Only: kills grant no experience.$BArtisan: only professions grant experience.$BIron Man: no groups, enchants, potions, talents or trade skills.$B$BMost can be combined. Where two would contradict each other, the second is not offered.$B$BEach one shows exactly what it does before you accept it.'),
 (200023, 'Bulletin boards - one in every capital, with a quartermaster beside it.$B$BTwo kinds of contract are posted:$BBounties - kill a specific creature.$BWork orders - craft and deliver goods.$B$BContracts are matched to your level and to the regions near that capital. Each capital posts different work.$B$BThe board rotates. What is available changes from day to day.'),

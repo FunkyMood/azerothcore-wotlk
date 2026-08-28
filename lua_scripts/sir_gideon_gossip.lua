@@ -13,8 +13,12 @@ local ACTION_TRAIN = 2
 local ACTION_CLOSE = 3
 local ACTION_BACK = 4
 local ACTION_CHALLENGES = 5
+local ACTION_PVP_ON = 6
+local ACTION_PVP_OFF = 7
+local PLAYER_EVENT_ON_LOGIN = 3
 
-local LORE_NPC_TEXT_ID = 200001
+-- Blank on purpose - the topic list is the content. See the migration.
+local LORE_NPC_TEXT_ID = 200028
 
 -- One page per feature of the realm, reached from "Tell me about this place".
 -- Was a single block of text that could only ever cover three things, and had
@@ -131,6 +135,35 @@ local INTID_ENABLE_OFFSET = 100
 local INTID_DISABLE_OFFSET = 200
 local CHALLENGES_NPC_TEXT_ID = 1
 
+-- Opt-in world PvP.
+--
+-- The realm itself stays non-PvP (GameType 0), which is what makes this
+-- work: a character who never raises the flag simply cannot be attacked,
+-- so the two populations never interfere. Randombots are flagged
+-- permanently (see RandomPlayerbotMgr.cpp), so there is actually someone
+-- out there to fight.
+--
+-- Stored as a PlayerSetting under our own source string rather than
+-- mod-challenge-modes', because this is not a challenge and should not
+-- appear in that menu or share its reward ladder. The flag itself does not
+-- survive logout, so it is re-applied on login - that permanence is the
+-- whole point, and what separates this from the native /pvp command, which
+-- drops five minutes after combat.
+local PVP_SETTING_SOURCE = "custom-world-pvp"
+local PVP_SETTING_INDEX = 0
+
+local PVP_DESCRIPTION =
+    "You will be open to attack by the opposing faction anywhere in the world, and will remain so until you tell me otherwise - logging out will not clear it. Players who have not taken this mark cannot be harmed by you, nor you by them."
+
+local function HasWorldPvP(player)
+    return player:GetPlayerSettingValue(PVP_SETTING_SOURCE, PVP_SETTING_INDEX) == 1
+end
+
+local function ApplyWorldPvP(player, enabled)
+    player:UpdatePlayerSetting(PVP_SETTING_SOURCE, PVP_SETTING_INDEX, enabled and 1 or 0)
+    player:SetPvP(enabled)
+end
+
 -- Artisan draws experience only from professions, but a primary profession
 -- can't be learned before level 5 - so a fresh character taking the challenge
 -- would be deadlocked: no trade to earn from, and no way to earn the level
@@ -161,6 +194,13 @@ local function OnGideonHello(event, player, object)
     player:GossipMenuAddItem(0, "Tell me about this place", 0, ACTION_LORE)
     player:GossipMenuAddItem(0, "Teach me your arts", 0, ACTION_TRAIN)
     player:GossipMenuAddItem(0, "I want to take up a challenge", 0, ACTION_CHALLENGES)
+
+    if HasWorldPvP(player) then
+        player:GossipMenuAddItem(0, "Remove the mark of open war", 0, ACTION_PVP_OFF)
+    else
+        player:GossipMenuAddItem(0, "|cffff0000Mark me for open war|r", 0, ACTION_PVP_ON, false, PVP_DESCRIPTION)
+    end
+
     player:GossipMenuAddItem(0, "Nothing, thank you", 0, ACTION_CLOSE)
     player:GossipSendMenu(1, object, 1)
 end
@@ -196,7 +236,9 @@ local function ShowChallengesMenu(player, object)
 end
 
 local function OnGideonSelect(event, player, object, sender, intid, code, menu_id)
-    if intid >= INTID_ENABLE_OFFSET then
+    -- Bounded on purpose: the lore pages use 300+, and an unbounded ">= 100"
+    -- swallowed them here, where anything past 200 reads as "disable challenge".
+    if intid >= INTID_ENABLE_OFFSET and intid < INTID_LORE_OFFSET then
         local enabling = intid < INTID_DISABLE_OFFSET
         local setting = enabling and (intid - INTID_ENABLE_OFFSET) or (intid - INTID_DISABLE_OFFSET)
 
@@ -238,8 +280,24 @@ local function OnGideonSelect(event, player, object, sender, intid, code, menu_i
         player:SendTrainerList(object)
     elseif intid == ACTION_CHALLENGES then
         ShowChallengesMenu(player, object)
+    elseif intid == ACTION_PVP_ON then
+        ApplyWorldPvP(player, true)
+        player:SendBroadcastMessage("|cffff0000You are marked for open war. The opposing faction may strike you anywhere.|r")
+        player:GossipComplete()
+    elseif intid == ACTION_PVP_OFF then
+        ApplyWorldPvP(player, false)
+        player:SendBroadcastMessage("The mark is lifted. You are no longer open to attack.")
+        player:GossipComplete()
     else
         player:GossipComplete()
+    end
+end
+
+local function OnLoginRestoreWorldPvP(event, player)
+    -- The PvP flag is not persisted by the core, so a marked character would
+    -- quietly come back safe after every logout. Re-apply it here.
+    if HasWorldPvP(player) then
+        player:SetPvP(true)
     end
 end
 
@@ -247,3 +305,4 @@ for _, entry in ipairs(GIDEON_ENTRIES) do
     RegisterCreatureGossipEvent(entry, GOSSIP_EVENT_ON_HELLO, OnGideonHello)
     RegisterCreatureGossipEvent(entry, GOSSIP_EVENT_ON_SELECT, OnGideonSelect)
 end
+RegisterPlayerEvent(PLAYER_EVENT_ON_LOGIN, OnLoginRestoreWorldPvP)
