@@ -17,6 +17,16 @@
 !/var/ccache/.gitkeep
 /env/dist/*
 !/env/dist/.gitkeep
+
+# The live server configuration is part of this realm's identity, not local
+# scratch: a rebuild on another machine has to come up tuned exactly the same
+# way. Values like the Artisan challenge's 0.003 profession XP fraction were
+# calculated, not guessed, and losing them would silently change how the realm
+# plays. So every .conf under etc/ is tracked. The .dist templates are not -
+# the build regenerates those from the modules themselves.
+!/env/dist/etc/
+!/env/dist/etc/**
+/env/dist/etc/**/*.conf.dist
 /env/user/*
 /.env*
 /apps/joiner
