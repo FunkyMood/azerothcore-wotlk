@@ -1,6 +1,5 @@
 local GOSSIP_EVENT_ON_HELLO = 1
 local GOSSIP_EVENT_ON_SELECT = 2
-local CREATURE_EVENT_ON_MOVE_IN_LOS = 27
 
 -- Two creature_template entries for the same NPC exist: 200000 (the one this
 -- script was originally written for) and 200001 (a parallel duplicate that
@@ -8,13 +7,6 @@ local CREATURE_EVENT_ON_MOVE_IN_LOS = 27
 -- its own - see starting_town_conversation.lua). Both carry the same 186
 -- quest-starter rows, so registering everything on both is safe.
 local GIDEON_ENTRIES = { 200000, 200001 }
-local GREETING_DISTANCE = 20
-local UNIVERSAL_LANGUAGE = 0
-local FIRST_GREETING =
-    "Hey, Tarnished... ahem, no, not that script. Where did I put it? Oh, never mind. Come here, adventurer."
-
--- Avoid repeated character-database queries while the server is running.
-local greetingChecked = {}
 
 local ACTION_LORE = 1
 local ACTION_TRAIN = 2
@@ -23,6 +15,27 @@ local ACTION_BACK = 4
 local ACTION_CHALLENGES = 5
 
 local LORE_NPC_TEXT_ID = 200001
+
+-- One page per feature of the realm, reached from "Tell me about this place".
+-- Was a single block of text that could only ever cover three things, and had
+-- already gone stale - it never mentioned the challenges sitting in this very
+-- menu, nor the boards. Text ids live in the 200020+ range (see the matching
+-- pending_db_world migration).
+--
+-- intid uses its own offset range so these can't be confused with the
+-- ACTION_* constants or with the challenge toggles.
+local INTID_LORE_OFFSET = 300
+
+local LORE_TOPICS = {
+    { text = "The companions who walk with us",   npcText = 200020 },
+    { text = "Setting your own pace",             npcText = 200021 },
+    { text = "The harder roads",                  npcText = 200022 },
+    { text = "The boards and their contracts",    npcText = 200023 },
+    { text = "The trades you may master",         npcText = 200024 },
+    { text = "Delving without a warband",         npcText = 200025 },
+    { text = "Appearance and origin",             npcText = 200026 },
+    { text = "Smaller comforts",                  npcText = 200027 },
+}
 
 -- Mirrors mod-challenge-modes' ChallengeModeSettings enum and its
 -- "mod-challenge-modes" PlayerSetting source string exactly - the module's
@@ -140,31 +153,6 @@ local function GrantArtisanStartingKit(player)
         "Gideon sets you on your way: level 5, and 30 silver to pay for your first trades.")
 end
 
-local function OnGideonMoveInLOS(event, creature, unit)
-    if not unit or not unit:IsPlayer() or unit:IsBot() then
-        return
-    end
-
-    if creature:GetDistance(unit) > GREETING_DISTANCE then
-        return
-    end
-
-    local guid = unit:GetGUIDLow()
-    if greetingChecked[guid] then
-        return
-    end
-
-    greetingChecked[guid] = true
-
-    local seen = CharDBQuery("SELECT 1 FROM custom_gideon_first_greeting WHERE guid = ? LIMIT 1", guid)
-    if seen then
-        return
-    end
-
-    CharDBExecute("INSERT IGNORE INTO custom_gideon_first_greeting (guid) VALUES (?)", guid)
-    creature:SendUnitSay(FIRST_GREETING, UNIVERSAL_LANGUAGE)
-end
-
 local function OnGideonHello(event, player, object)
     player:GossipClearMenu()
     -- Eluna replaces the core-built gossip menu for this entry. Restore the
@@ -223,8 +211,25 @@ local function OnGideonSelect(event, player, object, sender, intid, code, menu_i
         return
     end
 
+    if intid >= INTID_LORE_OFFSET then
+        local topic = LORE_TOPICS[intid - INTID_LORE_OFFSET]
+        if topic then
+            player:GossipClearMenu()
+            -- Straight back to the topic list, not to the root: reading one
+            -- page usually means reading the next.
+            player:GossipMenuAddItem(0, "...", 0, ACTION_LORE)
+            player:GossipSendMenu(topic.npcText, object, 2)
+        else
+            player:GossipComplete()
+        end
+        return
+    end
+
     if intid == ACTION_LORE then
         player:GossipClearMenu()
+        for index, topic in ipairs(LORE_TOPICS) do
+            player:GossipMenuAddItem(0, topic.text, 0, INTID_LORE_OFFSET + index)
+        end
         player:GossipMenuAddItem(0, "...", 0, ACTION_BACK)
         player:GossipSendMenu(LORE_NPC_TEXT_ID, object, 2)
     elseif intid == ACTION_BACK then
@@ -241,5 +246,4 @@ end
 for _, entry in ipairs(GIDEON_ENTRIES) do
     RegisterCreatureGossipEvent(entry, GOSSIP_EVENT_ON_HELLO, OnGideonHello)
     RegisterCreatureGossipEvent(entry, GOSSIP_EVENT_ON_SELECT, OnGideonSelect)
-    RegisterCreatureEvent(entry, CREATURE_EVENT_ON_MOVE_IN_LOS, OnGideonMoveInLOS)
 end
