@@ -15,10 +15,10 @@ mod-ah-bot	https://github.com/azerothcore/mod-ah-bot.git	a680cc1c98290713e9b3d32
 mod-ale	https://github.com/FunkyMood/mod-ale.git	13af1c4431db1c25145a37d0aab2ca9dbac8739d
 mod-arac	https://github.com/heyitsbench/mod-arac.git	3f605e09c656eb3b620ef2d70c7ef61808c1cfb0
 mod-autobalance	https://github.com/FunkyMood/mod-autobalance.git	5986eacfc2e993b14e47fdf70865809221e30228
-mod-bulletin-board	https://github.com/FunkyMood/mod-bulletin-board.git	178ee4cde29c1755dbe0b9f1fb5a6191b88c187e
+mod-bulletin-board	https://github.com/FunkyMood/mod-bulletin-board.git	4706037661a866d263615319bd21f6727c8d046d
 mod-challenge-modes	https://github.com/FunkyMood/mod-challenge-modes.git	31d44395f8179cf48884477e576d808124f8f8e9
 mod-individual-xp	https://github.com/azerothcore/mod-individual-xp.git	503471f766bc4f21dca0aa05e6a9d3d40718a780
-mod-playerbots	https://github.com/FunkyMood/mod-playerbots.git	c839734107b9e9f313371f6b57a4ff0ae1b947c8
+mod-playerbots	https://github.com/FunkyMood/mod-playerbots.git	03f7af58de0332d0c29de00f18a8cd44f7fd8407
 mod-profession-experience	https://github.com/FunkyMood/mod-profession-experience.git	58f424b8dc73c7c3d102169722c8e2440df9c0f7
 mod-setxpbar	https://github.com/brian8544/mod-setxpbar.git	a8ed628e0d18c2bb50bf5a64be392bf8b6c9165c
 mod-transmog	https://github.com/azerothcore/mod-transmog.git	33ac64b2c305eb1b6fbc97310a7ecbc30c2ba4ef
